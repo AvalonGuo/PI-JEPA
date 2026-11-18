@@ -1,0 +1,8 @@
+<mujoco model="type_cube">
+  <worldbody>
+    <body name="object">
+      <geom name="cube_geom" type="box" size="0.03 0.03 0.03" pos="0 0 0"
+            rgba="1 0.5 0 1" condim="4" contype="1" conaffinity="1"/>
+    </body>
+  </worldbody>
+</mujoco>
