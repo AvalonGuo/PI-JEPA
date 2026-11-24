@@ -43,7 +43,7 @@ uv pip install -e 3D-Diffusion-Policy
 
 ```bash
 mkdir -p ~/.mujoco && cd ~/.mujoco
-wget https://github.com/deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz -O mujoco210.tar.gz --no-check-certificate
+wget https://github.com/deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz -O mujoco210.tar.gz
 tar -xvzf mujoco210.tar.gz && rm -f mujoco210.tar.gz
 ```
 
@@ -95,7 +95,7 @@ build environment would not see torch, so `--no-build-isolation` is required.
 uv pip install zarr==2.12.0 wandb ipdb gpustat dm_control omegaconf \
     hydra-core==1.2.0 dill==0.3.5.1 einops==0.4.1 diffusers==0.11.1 \
     numba==0.56.4 moviepy imageio av matplotlib termcolor \
-    yacs==0.1.8 huggingface_hub==0.25.2 cloudpickle natsort
+    yacs==0.1.8 huggingface_hub==0.25.2 cloudpickle natsort open3d==0.19.0
 ```
 
 ## 10. Generate demonstrations
