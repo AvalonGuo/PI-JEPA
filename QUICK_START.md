@@ -1,8 +1,7 @@
 # QUICK Start
 
-*Verified on Ubuntu + NVIDIA RTX 4060, CUDA 12.1, Python 3.8. This is the recommended
-installation path. The legacy conda recipe inherited from upstream DP3 is kept in
-[INSTALL.md](INSTALL.md); in-depth errors are collected in [ERROR_CATCH.md](ERROR_CATCH.md).*
+*Verified on Ubuntu + NVIDIA RTX 4060 Ti, CUDA 12.1, Python 3.8. This is the recommended
+installation path. In-depth errors are collected in [ERROR_CATCH.md](ERROR_CATCH.md).*
 
 Three environment variables are used throughout; set them once per shell:
 
@@ -12,12 +11,10 @@ export DATA_ROOT=$REPO/3D-Diffusion-Policy/data    # generated zarr datasets
 export OUT_ROOT=$REPO/outputs                      # PI-JEPA run dirs (weights, metrics)
 ```
 
-## 0. Prerequisites
+## 0. Requirements
 
-- NVIDIA GPU + a driver supporting CUDA 12.1 (PyTorch below is the cu121 build)
-- >= 16 GB free disk for PyTorch, MuJoCo and the simulators
-- `git`, `gcc` / `g++`, `make`, `ninja`
-- `sudo` rights for the apt packages in step 6
+An NVIDIA GPU (verified on an RTX 4060 Ti) with a CUDA 12.1 driver, and a Linux machine
+with the usual C/C++ build toolchain.
 
 ## 1. Clone the repository
 
@@ -35,7 +32,6 @@ export OUT_ROOT=$REPO/outputs
 pip install uv
 uv venv --python 3.8 .venv
 source .venv/bin/activate
-# optional: export UV_CACHE_DIR=/your/cache/dir   (omit to use uv's default)
 ```
 
 ## 3. Install PyTorch (2.4.1, cu121 -- the build this repository was verified with)
@@ -84,18 +80,14 @@ uv pip install -e .
 
 ```bash
 cd "$REPO/third_party"
-cd dexart-release   && uv pip install -e . && cd ..
 cd gym-0.21.0       && uv pip install -e . && cd ..
 cd Metaworld        && uv pip install -e . && cd ..
 cd rrl-dependencies && uv pip install -e mj_envs/. && uv pip install -e mjrl/. && cd ..
 ```
 
-Download the assets (required for the Adroit / DexArt tasks):
-
-- DexArt assets: [Google Drive](https://drive.google.com/file/d/1DxRfB4087PeM3Aejd6cR-RQVgOKdNrL4/view?usp=sharing)
-  -> unzip into `third_party/dexart-release/assets`
-- Adroit expert policies: [OneDrive](https://1drv.ms/u/s!Ag5QsBIFtRnTlFWqYWtS2wMMPKNX?e=dw8hsS)
-  -> unzip and put the `ckpts` folder under `third_party/VRL3/`
+Adroit expert policies (required for the Adroit tasks):
+[OneDrive](https://1drv.ms/u/s!Ag5QsBIFtRnTlFWqYWtS2wMMPKNX?e=dw8hsS) -> unzip and put the
+`ckpts` folder under `third_party/VRL3/`.
 
 ## 8. Install pytorch3d_simplified (non-editable, no build isolation)
 
