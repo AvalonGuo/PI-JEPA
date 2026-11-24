@@ -12,7 +12,7 @@
 #   [ckpt]          latest | best | epoch=NNNN-*.ckpt | /abs/path.ckpt
 # env: CKPT= (wins over [ckpt]) | OUT_ROOT= | PYTHON= | DRY_RUN=1 | TEE=1 | SUMMARY=1 |
 #      LOG= | NUM_POINTS= | ZARR= | BN_HIDDEN= | FUTURE_STEPS= | TDT_* | POOL_* (ckpt wins) |
-#      V5_TARGET=<dotted class, default pijepa_policy.PIJEPAPolicyV5, e.g. an ablation
+#      V5_TARGET=<dotted class, default pijepa_policy.PIJEPAPolicyV5>
 #      subclass; PYTHONPATH must make it importable> |
 #      METRICS_DIR=<media dir>|none | METRIC_TAG=pijepa_v5
 # e.g. bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0
@@ -91,15 +91,15 @@ fi
 # --- run dir / checkpoint -----------------------------------------------------
 source "${repo}/PI-JEPA/run_dir.sh"
 alg_tag=pijepa
-run_dir=$(ablation_run_dir "${out_root}" "${task_name}" "${alg_tag}" "${addition_info}" "${seed}")
+run_dir=$(pijepa_run_dir "${out_root}" "${task_name}" "${alg_tag}" "${addition_info}" "${seed}")
 if [ ! -d "${run_dir}" ]; then
     echo "[eval5] run dir not found: ${run_dir}"
     echo "[eval5] hint: <addition_info> names the dir (<task>-${alg_tag}-<addition_info>_seed<seed>);"
     echo "[eval5]       OUT_ROOT=${out_root} -- ls it to see what exists"
     exit 1
 fi
-[ -f "${run_dir}/ablation.json" ] || \
-    echo "[eval5] WARN: ${run_dir}/ablation.json missing (not a launcher-created run dir?)"
+[ -f "${run_dir}/run.json" ] || \
+    echo "[eval5] WARN: ${run_dir}/run.json missing (not a launcher-created run dir?)"
 
 ckpt_dir="${run_dir}/checkpoints"
 case "${ckpt_sel}" in

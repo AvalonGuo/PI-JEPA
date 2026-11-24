@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Shared PI-JEPA training library: two-view data, losses, cfg, ckpt, rollout.
 
-Consumers: ``PI-JEPA/train_pijepa.py`` (v5 trainer, ablation 1/2) and
+Consumers: ``PI-JEPA/train_pijepa.py`` (v5 trainer) and
 ``test/verify_pijepa_pipeline.py``.  See ``PI-JEPA/pijepa_policy.py``.
 
 Data (``CleanPollDataset``): two views of the *first* ``n_obs_steps`` frames

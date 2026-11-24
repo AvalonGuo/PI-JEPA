@@ -137,13 +137,13 @@ out_root=${OUT_ROOT:-/hy-tmp/data/outputs}
 source "${repo}/PI-JEPA/run_dir.sh"
 alg_tag=pijepa
 exp_name=${task_name}-${alg_tag}-${addition_info}
-run_dir=$(ablation_run_dir "${out_root}" "${task_name}" "${alg_tag}" "${addition_info}" "${seed}")
+run_dir=$(pijepa_run_dir "${out_root}" "${task_name}" "${alg_tag}" "${addition_info}" "${seed}")
 task_cfg="${repo}/3D-Diffusion-Policy/diffusion_policy_3d/config/task/${task_name}.yaml"
 [ -f "${task_cfg}" ] || { echo "[pijepa] unknown task '${task_name}': ${task_cfg} not found"; exit 1; }
 zarr_path=${zarr_arg:-${ZARR:-/hy-tmp/3DP/data/${task_name}_expert.zarr}}
 [ -d "${zarr_path}" ] || { echo "[pijepa] zarr not found: ${zarr_path} (pass as arg6 or set ZARR=)"; exit 1; }
 
-ablation_claim_run_dir "${run_dir}" "$(printf '{"script":"scripts/train_pijepa.sh","task":"%s","addition_info":"%s","seed":%s,"epochs":%s,"lambda_jepa_clean":%s,"lambda_jepa_poll":%s,"l2_clean_weight":%s,"l2_poll_weight":%s,"pool_type":"%s","bn_hidden":"%s","future_steps":%s,"gamma":%s,"l1_mode":"%s","tdt_layers":%s,"tdt_heads":%s,"tdt_ff":%s,"tdt_dropout":%s,"tdt_pool":"%s","zarr":"%s"}' \
+pijepa_claim_run_dir "${run_dir}" "$(printf '{"script":"scripts/train_pijepa.sh","task":"%s","addition_info":"%s","seed":%s,"epochs":%s,"lambda_jepa_clean":%s,"lambda_jepa_poll":%s,"l2_clean_weight":%s,"l2_poll_weight":%s,"pool_type":"%s","bn_hidden":"%s","future_steps":%s,"gamma":%s,"l1_mode":"%s","tdt_layers":%s,"tdt_heads":%s,"tdt_ff":%s,"tdt_dropout":%s,"tdt_pool":"%s","zarr":"%s"}' \
     "${task_name}" "${addition_info}" "${seed}" "${epochs}" "${lambda_jepa_clean}" "${lambda_jepa_poll}" \
     "${l2_clean_weight}" "${l2_poll_weight}" "${pool_type}" "${bn_hidden}" \
     "${future_steps}" "${gamma}" "${l1_mode}" "${tdt_layers}" "${tdt_heads}" "${tdt_ff}" \
