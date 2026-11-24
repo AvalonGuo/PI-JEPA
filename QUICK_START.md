@@ -3,16 +3,6 @@
 *Verified on Ubuntu + NVIDIA RTX 4060 Ti, CUDA 12.1, Python 3.8. This is the recommended
 installation path. In-depth errors are collected in [ERROR_CATCH.md](ERROR_CATCH.md).*
 
-Everything stays inside the repository: demonstrations are generated into
-`3D-Diffusion-Policy/data/` and training runs go to `outputs/` (both are git-ignored).
-Set the repo root once per shell:
-
-```bash
-export REPO=/path/to/PI-JEPA   # optional: the launchers derive it from their own location
-```
-
-Redirect any of these with `ZARR=`, `OUT_ROOT=` or `RUN_DIR=`.
-
 ## 0. Requirements
 
 An NVIDIA GPU (verified on an RTX 4060 Ti) with a CUDA 12.1 driver, and a Linux machine
@@ -119,10 +109,8 @@ bash scripts/gen_demonstration_metaworld.sh assembly
 ```
 
 Arguments: `<task> [save_video=0] [num_episodes=10] [seed=42] [gpu=0] [output_dir]
-[pc_resolution] [num_points]`. By default the zarr is written to
-`3D-Diffusion-Policy/data/<task>_expert.zarr`, which is exactly where the task yaml looks for
-it; pass `output_dir` as the 6th argument to change it. For Adroit, `pc_resolution` must stay
-84 (the depth map feeds the 84x84 back-projection).
+[pc_resolution] [num_points]`; `output_dir` (6th) defaults to `3D-Diffusion-Policy/data`.
+For Adroit, `pc_resolution` must stay 84 (the depth map feeds the 84x84 back-projection).
 
 Optional point-cloud visualizer:
 
@@ -138,11 +126,9 @@ bash scripts/train_policy.sh dp3 adroit_hammer 0112 0 0 1000
 bash scripts/eval_policy.sh dp3 adroit_hammer 0112 0 0
 ```
 
-`train_policy.sh` arguments: `<alg> <task> <tag> <seed> <gpu> [epochs=3000] [zarr_path]`;
-without the 7th argument the dataset comes from the task yaml
-(`3D-Diffusion-Policy/data/<task>_expert.zarr`). It calls a bare `python`, so keep the
-`.venv` activated. Weights go to `outputs/<task>-<alg>-<tag>_seed<seed>/checkpoints/`;
-`RUN_DIR=` points `eval_policy.sh` at another run dir if needed.
+`train_policy.sh` arguments: `<alg> <task> <tag> <seed> <gpu> [epochs=3000] [zarr_path]`.
+It calls a bare `python`, so keep the `.venv` activated. Weights:
+`outputs/<task>-<alg>-<tag>_seed<seed>/checkpoints/`.
 
 ## 12. Quick run -- PI-JEPA (main method)
 
@@ -159,11 +145,8 @@ CKPT=best bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0 false 50 cat
 `eval_pijepa.sh` arguments: `<task> <addition_info> <seed> <gpu> [save_video=false]
 [episodes=50] [suite=false] [extra_steps=0] [run_tag] [ckpt]`.
 
-Run dir: `outputs/<task>-pijepa-<addition_info>_seed<seed>` (override with `OUT_ROOT=`),
-containing `checkpoints/latest.ckpt`, `checkpoints/best.ckpt` + `checkpoints/best.json`,
-`pijepa_v5_metrics.jsonl` and `run.json`. The dataset defaults to
-`3D-Diffusion-Policy/data/<task>_expert.zarr` (override with `ZARR=` or the 6th argument).
-Both PI-JEPA launchers default to `${REPO}/.venv/bin/python`, so activation is optional there.
+Run dir: `outputs/<task>-pijepa-<addition_info>_seed<seed>` with `checkpoints/latest.ckpt`,
+`checkpoints/best.ckpt` + `best.json`, `pijepa_v5_metrics.jsonl` and `run.json`.
 
 Frequently used environment variables (full list in the header of `scripts/train_pijepa.sh`):
 
