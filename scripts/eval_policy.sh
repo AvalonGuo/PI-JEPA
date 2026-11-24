@@ -2,15 +2,18 @@ DEBUG=False
 wandb_mode=offline
 save_ckpt=False
 
+# repository root: every default path below is derived from it (no absolute host paths)
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+
 alg_name=${1}
 task_name=${2}
 config_name=${alg_name}
 addition_info=${3}
 seed=${4}
 exp_name=${task_name}-${alg_name}-${addition_info}
-# RUN_DIR lets an ablation run (e.g. ...-meanpool_seed0) be evaluated without
-# editing this script; default keeps the baseline path unchanged.
-run_dir=${RUN_DIR:-"/hy-tmp/data/outputs/${exp_name}_seed${seed}"}
+# RUN_DIR lets a run that lives elsewhere (e.g. an older experiment stored outside the repo)
+# be evaluated without editing this script; the default stays inside <repo>/outputs.
+run_dir=${RUN_DIR:-"${repo_root}/outputs/${exp_name}_seed${seed}"}
 # fail fast when the run dir has no checkpoint: eval.py would otherwise evaluate a
 # randomly initialised policy ("AttributeError: 'ParameterDict' object has no
 # attribute 'point_cloud'" at the first predict_action).
@@ -32,7 +35,7 @@ if [ ! -f "${_ckpt}" ]; then
     echo "[eval_policy] no checkpoint: ${_ckpt}"
     echo "[eval_policy] run_dir=${run_dir}  (RUN_DIR override or <task>-<alg>-<info>_seed<seed>)"
     echo "[eval_policy] hint: pass the dir that really holds checkpoints/${_ckpt_sel}.ckpt,"
-    echo "[eval_policy]       e.g. RUN_DIR=/hy-tmp/data/outputs/<task>-<alg>-<info>_seed<seed>"
+    echo "[eval_policy]       e.g. RUN_DIR=${repo_root}/outputs/<task>-<alg>-<info>_seed<seed>"
     if [ "${DRY_RUN:-0}" != "1" ]; then
         exit 1
     fi
@@ -91,8 +94,6 @@ else
     video_subdir="clean"
 fi
 [ -n "${run_tag}" ] && video_subdir="${video_subdir}-${run_tag}"
-
-repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 
 # num_points (FPS rows): NUM_POINTS > ckpt-recorded N (pijepa block, else the
 # training zarr's rows) > ZARR_PATH's rows > benchmark default
@@ -209,7 +210,7 @@ if [ "${_np}" != "${_bench_np}" ]; then
     echo "[eval_policy] WARN: N=${_np} != benchmark default ${_bench_np}; using ${_np} (NUM_POINTS= overrides)"
 fi
 
-cd 3D-Diffusion-Policy
+cd "${repo_root}/3D-Diffusion-Policy"
 
 export HYDRA_FULL_ERROR=1
 export CUDA_VISIBLE_DEVICES=${gpu_id}

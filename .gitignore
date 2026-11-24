@@ -48,3 +48,6 @@ output/vrl3_ckpts.zip
 3D-Diffusion-Policy/diffusion_policy_3d/dr3d/tmp/
 # per-process private scene dirs (方案A 并行评测; 进程退出自动清理)
 third_party/rrl-dependencies/mj_envs/tmp_parallel/
+# local data / run artifacts (datasets are also ignored by 3D-Diffusion-Policy/.gitignore)
+outputs/
+.venv/

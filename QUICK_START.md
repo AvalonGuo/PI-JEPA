@@ -3,13 +3,15 @@
 *Verified on Ubuntu + NVIDIA RTX 4060 Ti, CUDA 12.1, Python 3.8. This is the recommended
 installation path. In-depth errors are collected in [ERROR_CATCH.md](ERROR_CATCH.md).*
 
-Three environment variables are used throughout; set them once per shell:
+Everything stays inside the repository: demonstrations are generated into
+`3D-Diffusion-Policy/data/` and training runs go to `outputs/` (both are git-ignored).
+Set the repo root once per shell:
 
 ```bash
-export REPO=/path/to/PI-JEPA                       # repository root
-export DATA_ROOT=$REPO/3D-Diffusion-Policy/data    # generated zarr datasets
-export OUT_ROOT=$REPO/outputs                      # PI-JEPA run dirs (weights, metrics)
+export REPO=/path/to/PI-JEPA   # optional: the launchers derive it from their own location
 ```
+
+Redirect any of these with `ZARR=`, `OUT_ROOT=` or `RUN_DIR=`.
 
 ## 0. Requirements
 
@@ -22,8 +24,6 @@ with the usual C/C++ build toolchain.
 git clone https://github.com/AvalonGuo/PI-JEPA.git
 cd PI-JEPA
 export REPO=$(pwd)
-export DATA_ROOT=$REPO/3D-Diffusion-Policy/data
-export OUT_ROOT=$REPO/outputs
 ```
 
 ## 2. Create the Python 3.8 environment with uv
@@ -112,17 +112,17 @@ uv pip install zarr==2.12.0 wandb ipdb gpustat dm_control omegaconf \
 
 ```bash
 # Adroit (task: hammer | door | pen)
-bash scripts/gen_demonstration_adroit.sh hammer 0 10 42 0 "$DATA_ROOT" 84 0
+bash scripts/gen_demonstration_adroit.sh hammer
 
 # MetaWorld (task: assembly | disassemble | stick-push | ...)
-bash scripts/gen_demonstration_metaworld.sh assembly 0 10 42 0 "$DATA_ROOT" 128 1024
+bash scripts/gen_demonstration_metaworld.sh assembly
 ```
 
 Arguments: `<task> [save_video=0] [num_episodes=10] [seed=42] [gpu=0] [output_dir]
-[pc_resolution] [num_points]`. These scripts default to `/hy-tmp/3DP/data`; always pass
-`"$DATA_ROOT"` so the zarr lands where the task yaml expects it
-(`data/<task>_expert.zarr` relative to `3D-Diffusion-Policy/`). For Adroit, `pc_resolution`
-must stay 84 (the depth map feeds the 84x84 back-projection).
+[pc_resolution] [num_points]`. By default the zarr is written to
+`3D-Diffusion-Policy/data/<task>_expert.zarr`, which is exactly where the task yaml looks for
+it; pass `output_dir` as the 6th argument to change it. For Adroit, `pc_resolution` must stay
+84 (the depth map feeds the 84x84 back-projection).
 
 Optional point-cloud visualizer:
 
@@ -134,23 +134,21 @@ cd "$REPO/visualizer" && uv pip install -e .
 ## 11. Quick run -- DP3 baseline
 
 ```bash
-bash scripts/train_policy.sh dp3 adroit_hammer 0112 0 0 1000 \
-    "$DATA_ROOT/adroit_hammer_expert.zarr"
+bash scripts/train_policy.sh dp3 adroit_hammer 0112 0 0 1000
 bash scripts/eval_policy.sh dp3 adroit_hammer 0112 0 0
 ```
 
-`train_policy.sh` arguments: `<alg> <task> <tag> <seed> <gpu> [epochs=3000] [zarr_path]`.
-It calls a bare `python`, so keep the `.venv` activated. Its run dir is hard-coded to
-`/hy-tmp/data/outputs` (line 19) -- create that directory or edit the line; weights go to
-`<run_dir>/checkpoints/latest.ckpt`. `eval_policy.sh` loads that checkpoint when the
-`<alg> <task> <tag> <seed> <gpu>` arguments match (use `RUN_DIR=` to point elsewhere).
+`train_policy.sh` arguments: `<alg> <task> <tag> <seed> <gpu> [epochs=3000] [zarr_path]`;
+without the 7th argument the dataset comes from the task yaml
+(`3D-Diffusion-Policy/data/<task>_expert.zarr`). It calls a bare `python`, so keep the
+`.venv` activated. Weights go to `outputs/<task>-<alg>-<tag>_seed<seed>/checkpoints/`;
+`RUN_DIR=` points `eval_policy.sh` at another run dir if needed.
 
 ## 12. Quick run -- PI-JEPA (main method)
 
 ```bash
 # train: <task> <addition_info> <seed> <gpu> [epochs=1000] [zarr_path]
-bash scripts/train_pijepa.sh metaworld_stick-push pjv5 0 0 1000 \
-    "$DATA_ROOT/metaworld_stick-push_expert.zarr"
+bash scripts/train_pijepa.sh metaworld_stick-push pjv5 0 0 1000
 
 # evaluate: latest | best | epoch=NNNN-*.ckpt | /abs/path.ckpt
 CKPT=best bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0
@@ -161,11 +159,11 @@ CKPT=best bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0 false 50 cat
 `eval_pijepa.sh` arguments: `<task> <addition_info> <seed> <gpu> [save_video=false]
 [episodes=50] [suite=false] [extra_steps=0] [run_tag] [ckpt]`.
 
-Run dir: `$OUT_ROOT/<task>-pijepa-<addition_info>_seed<seed>`, containing
-`checkpoints/latest.ckpt`, `checkpoints/best.ckpt` + `checkpoints/best.json`,
-`pijepa_v5_metrics.jsonl` and `run.json`. Both PI-JEPA launchers default to
-`${REPO}/.venv/bin/python`, so activation is optional there. `OUT_ROOT` defaults to
-`/hy-tmp/data/outputs`; export it as shown above to keep runs inside the repo.
+Run dir: `outputs/<task>-pijepa-<addition_info>_seed<seed>` (override with `OUT_ROOT=`),
+containing `checkpoints/latest.ckpt`, `checkpoints/best.ckpt` + `checkpoints/best.json`,
+`pijepa_v5_metrics.jsonl` and `run.json`. The dataset defaults to
+`3D-Diffusion-Policy/data/<task>_expert.zarr` (override with `ZARR=` or the 6th argument).
+Both PI-JEPA launchers default to `${REPO}/.venv/bin/python`, so activation is optional there.
 
 Frequently used environment variables (full list in the header of `scripts/train_pijepa.sh`):
 
@@ -180,7 +178,8 @@ Frequently used environment variables (full list in the header of `scripts/train
 | `LAMBDA_JEPA_CLEAN` / `LAMBDA_JEPA_POLL` | `1` / `1` | JEPA SmoothL1 weights (`0` disables a term) |
 | `ROLLOUT_EVERY` | `200` | in-loop rollout period (`0` = off) |
 | `BATCH` / `WORKERS` | `128` / `8` | dataloader |
-| `OUT_ROOT` / `ZARR` | see above | override the run-dir root / the dataset |
+| `OUT_ROOT` | `outputs/` | run-dir root |
+| `ZARR` | `3D-Diffusion-Policy/data/<task>_expert.zarr` | dataset override |
 | `DRY_RUN=1` | off | print the resolved command without running |
 
 CPU-only wiring check (no simulator, no training):
@@ -198,7 +197,8 @@ branch (`mlp -> bottleneck -> pool -> final_proj | state -> UNet`), which is why
 - OpenGL errors -> `unset LD_PRELOAD`
 - `distutils has no attribute 'version'` -> `uv pip install setuptools==59.5.0`
 - `CUDA no kernel image` or `cannot import name '_C'` -> reinstall step 8
-- Training cannot find the dataset -> pass `$DATA_ROOT/<task>_expert.zarr` explicitly (step 11/12)
+- Training cannot find the dataset -> generate the demos first (step 10), or pass
+  `ZARR=<path>` / the extra zarr argument
 - `No module named 'natsort'` -> `uv pip install natsort`
 - A simulator fails to import -> `3D-Diffusion-Policy/diffusion_policy_3d/env/__init__.py`
   already guards each env with its own try/except, so one broken env does not block the others;

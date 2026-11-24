@@ -18,7 +18,7 @@
 #      POLL_VOXEL_MIN=10 | POLL_VOXEL_MAX=50 | POLL_MODE=bbox|occupied | POLL_SEED=0 |
 #      FPS_DEVICE=cpu|auto|cuda | BATCH=128 | LR= | WORKERS=8 | ROLLOUT_EVERY=200 (0 = off) |
 #      MAX_STEPS=0 | SAVE_BEST=auto|1|0 | BEST_MONITOR= | BEST_K= | BEST_MODE= |
-#      BEST_NAME=best.ckpt | EVAL_EPISODES= | OUT_ROOT=/hy-tmp/data/outputs |
+#      BEST_NAME=best.ckpt | EVAL_EPISODES= | OUT_ROOT=<repo>/outputs |
 #      PYTHON= | TRAIN_ENTRY=<trainer.py> (default PI-JEPA/train_pijepa.py) |
 #      DRY_RUN=1 | RESUME=1 | NO_CKPT=1
 set -euo pipefail
@@ -131,16 +131,17 @@ fi
 # run dir = <OUT_ROOT>/<task>-pijepa-<addition_info>_seed<seed>; <addition_info> is the
 # experiment tag, nothing else is appended. scripts/eval_pijepa.sh resolves
 # the same dir (scripts/eval_policy.sh would need RUN_DIR=).
+# OUT_ROOT defaults to <repo>/outputs, so nothing is written outside the repository.
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 py=${PYTHON:-${repo}/.venv/bin/python}
-out_root=${OUT_ROOT:-/hy-tmp/data/outputs}
+out_root=${OUT_ROOT:-${repo}/outputs}
 source "${repo}/PI-JEPA/run_dir.sh"
 alg_tag=pijepa
 exp_name=${task_name}-${alg_tag}-${addition_info}
 run_dir=$(pijepa_run_dir "${out_root}" "${task_name}" "${alg_tag}" "${addition_info}" "${seed}")
 task_cfg="${repo}/3D-Diffusion-Policy/diffusion_policy_3d/config/task/${task_name}.yaml"
 [ -f "${task_cfg}" ] || { echo "[pijepa] unknown task '${task_name}': ${task_cfg} not found"; exit 1; }
-zarr_path=${zarr_arg:-${ZARR:-/hy-tmp/3DP/data/${task_name}_expert.zarr}}
+zarr_path=${zarr_arg:-${ZARR:-${repo}/3D-Diffusion-Policy/data/${task_name}_expert.zarr}}
 [ -d "${zarr_path}" ] || { echo "[pijepa] zarr not found: ${zarr_path} (pass as arg6 or set ZARR=)"; exit 1; }
 
 pijepa_claim_run_dir "${run_dir}" "$(printf '{"script":"scripts/train_pijepa.sh","task":"%s","addition_info":"%s","seed":%s,"epochs":%s,"lambda_jepa_clean":%s,"lambda_jepa_poll":%s,"l2_clean_weight":%s,"l2_poll_weight":%s,"pool_type":"%s","bn_hidden":"%s","future_steps":%s,"gamma":%s,"l1_mode":"%s","tdt_layers":%s,"tdt_heads":%s,"tdt_ff":%s,"tdt_dropout":%s,"tdt_pool":"%s","zarr":"%s"}' \

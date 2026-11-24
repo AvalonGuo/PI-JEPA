@@ -72,7 +72,7 @@ esac
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 py=${PYTHON:-${repo}/.venv/bin/python}
-out_root=${OUT_ROOT:-/hy-tmp/data/outputs}
+out_root=${OUT_ROOT:-${repo}/outputs}
 
 task_cfg="${repo}/3D-Diffusion-Policy/diffusion_policy_3d/config/task/${task_name}.yaml"
 [ -f "${task_cfg}" ] || { echo "[eval5] unknown task '${task_name}': ${task_cfg} not found"; exit 1; }
@@ -222,7 +222,7 @@ if [ "${_resolved}" = "1" ]; then
     pool_temp=${POOL_TEMP:-$(meta_or pool_temp 1.0)}
     pool_hidden=${POOL_SCORE_HIDDEN:-$(meta_or pool_hidden 0)}
     num_points=${NUM_POINTS:-$(meta_or num_points 1024)}
-    zarr_path=${ZARR:-$(meta_or zarr "/hy-tmp/3DP/data/${task_name}_expert.zarr")}
+    zarr_path=${ZARR:-$(meta_or zarr "${repo}/3D-Diffusion-Policy/data/${task_name}_expert.zarr")}
     ckpt_epoch=$(meta_or epoch -1)
     case "$(meta_or task_check ok)" in
         ok) ;;
@@ -245,7 +245,7 @@ else
     pool_temp=${POOL_TEMP:-1.0}
     pool_hidden=${POOL_SCORE_HIDDEN:-0}
     num_points=${NUM_POINTS:-1024}
-    zarr_path=${ZARR:-"/hy-tmp/3DP/data/${task_name}_expert.zarr"}
+    zarr_path=${ZARR:-"${repo}/3D-Diffusion-Policy/data/${task_name}_expert.zarr"}
     ckpt_epoch=-1
 fi
 

@@ -2,10 +2,10 @@
 # Metaworld expert demos (single collector: point_cloud + raw full point cloud).
 #
 # bash scripts/gen_demonstration_metaworld.sh assembly
-# bash scripts/gen_demonstration_metaworld.sh assembly 0 10 42 0 /hy-tmp/3DP/data 128 1024
+# bash scripts/gen_demonstration_metaworld.sh assembly 0 10 42 0 "$REPO/3D-Diffusion-Policy/data" 128 1024
 #   args: task, save_video (0/1 -> one mp4 per kept episode under <output_dir>/video),
 #         num_episodes (default 10), seed (default 42), gpu_id (default 0),
-#         output_dir (default /hy-tmp/3DP/data), pc_resolution (default 128),
+#         output_dir (default <repo>/3D-Diffusion-Policy/data), pc_resolution (default 128),
 #         num_points (default 1024)
 # output: <output_dir>/metaworld_<task>_expert.zarr with data/
 #   img, state, full_state, point_cloud, depth, action,
@@ -17,19 +17,21 @@
 #      PYTHON=<interpreter path>
 set -euo pipefail
 
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+
 task=${1:?task}
 save_video=${2:-0}
 num_episodes=${3:-10}
 seed=${4:-42}
 gpu_id=${5:-0}
-output_dir=${6:-/hy-tmp/3DP/data}
+output_dir=${6:-${repo}/3D-Diffusion-Policy/data}
 pc_resolution=${7:-128}
 num_points=${8:-1024}
 seed_rule=${SEED_RULE:-per_attempt}
 
 usage() {
-    echo "  usage: bash scripts/gen_demonstration_metaworld.sh <task> [save_video=0] [num_episodes=10] [seed=42] [gpu=0] [output_dir=/hy-tmp/3DP/data] [pc_resolution=128] [num_points=1024]"
-    echo "  e.g.   bash scripts/gen_demonstration_metaworld.sh assembly 0 10 42 0 /hy-tmp/3DP/data 128 1024"
+    echo "  usage: bash scripts/gen_demonstration_metaworld.sh <task> [save_video=0] [num_episodes=10] [seed=42] [gpu=0] [output_dir=<repo>/3D-Diffusion-Policy/data] [pc_resolution=128] [num_points=1024]"
+    echo "  e.g.   bash scripts/gen_demonstration_metaworld.sh assembly 0 10 42 0 \"$REPO/3D-Diffusion-Policy/data\" 128 1024"
 }
 
 for _nv in "num_episodes:${num_episodes}" "seed:${seed}" "gpu_id:${gpu_id}" \
@@ -62,12 +64,12 @@ if command -v nvidia-smi >/dev/null 2>&1; then
     fi
 fi
 
+[ "${DRY_RUN:-0}" = "1" ] || mkdir -p "${output_dir}"
 zarr_path="${output_dir}/metaworld_${task}_expert.zarr"
 extra=()
 [ "${OVERWRITE:-0}" = "1" ] && extra+=( --overwrite )
 [ -n "${MAX_ATTEMPTS:-}" ] && extra+=( --max-attempts "${MAX_ATTEMPTS}" )
 [ "${video_flag}" = "1" ] && extra+=( --save_video )
-repo="$(cd "$(dirname "$0")/.." && pwd)"
 py=${PYTHON:-}
 if [ -z "${py}" ] && [ -x "${repo}/.venv/bin/python" ]; then py="${repo}/.venv/bin/python"; fi
 py=${py:-python}

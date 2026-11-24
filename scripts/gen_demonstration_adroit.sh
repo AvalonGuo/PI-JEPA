@@ -3,10 +3,10 @@
 # Mirrors scripts/gen_demonstration_metaworld.sh argument-for-argument.
 #
 # bash scripts/gen_demonstration_adroit.sh hammer
-# bash scripts/gen_demonstration_adroit.sh hammer 0 10 42 0 /hy-tmp/3DP/data 84 0
+# bash scripts/gen_demonstration_adroit.sh hammer 0 10 42 0 "$REPO/3D-Diffusion-Policy/data" 84 0
 #   args: task, save_video (0/1 -> one mp4 per kept episode under <output_dir>/video),
 #         num_episodes (default 10), seed (default 42), gpu_id (default 0),
-#         output_dir (default /hy-tmp/3DP/data), pc_resolution (default 84),
+#         output_dir (default <repo>/3D-Diffusion-Policy/data), pc_resolution (default 84),
 #         extra_steps_after_success (default 0 = full episode, run to env horizon),
 #         success_goal_threshold (default 10), min_episode_steps (default 100)
 # output: <output_dir>/adroit_<task>_expert.zarr with data/
@@ -21,20 +21,22 @@
 #      ALLOW_MIXED_TRUNCATION=1 (append onto a zarr with another truncation policy)
 set -euo pipefail
 
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+
 task=${1:?task}
 save_video=${2:-0}
 num_episodes=${3:-10}
 seed=${4:-42}
 gpu_id=${5:-0}
-output_dir=${6:-/hy-tmp/3DP/data}
+output_dir=${6:-${repo}/3D-Diffusion-Policy/data}
 pc_resolution=${7:-84}
 extra_steps=${8:-${EXTRA_STEPS_AFTER_SUCCESS:-0}}
 success_threshold=${9:-${SUCCESS_GOAL_THRESHOLD:-10}}
 min_episode_steps=${10:-${MIN_EPISODE_STEPS:-100}}
 
 usage() {
-    echo "  usage: bash scripts/gen_demonstration_adroit.sh <task> [save_video=0] [num_episodes=10] [seed=42] [gpu=0] [output_dir=/hy-tmp/3DP/data] [pc_resolution=84] [extra_steps_after_success=0] [success_goal_threshold=10] [min_episode_steps=100]"
-    echo "  e.g.   bash scripts/gen_demonstration_adroit.sh hammer 0 10 42 0 /hy-tmp/3DP/data 84 0"
+    echo "  usage: bash scripts/gen_demonstration_adroit.sh <task> [save_video=0] [num_episodes=10] [seed=42] [gpu=0] [output_dir=<repo>/3D-Diffusion-Policy/data] [pc_resolution=84] [extra_steps_after_success=0] [success_goal_threshold=10] [min_episode_steps=100]"
+    echo "  e.g.   bash scripts/gen_demonstration_adroit.sh hammer 0 10 42 0 \"$REPO/3D-Diffusion-Policy/data\" 84 0"
 }
 
 for _nv in "num_episodes:${num_episodes}" "seed:${seed}" "gpu_id:${gpu_id}" \
@@ -75,6 +77,7 @@ if command -v nvidia-smi >/dev/null 2>&1; then
     fi
 fi
 
+[ "${DRY_RUN:-0}" = "1" ] || mkdir -p "${output_dir}"
 zarr_path="${output_dir}/adroit_${task}_expert.zarr"
 if [ "${extra_steps}" -gt 0 ]; then
     policy_desc="success+${extra_steps} steps (truncated)"
@@ -87,7 +90,6 @@ extra_py=()
 [ "${ALLOW_MIXED_TRUNCATION:-0}" = "1" ] && extra_py+=( --allow_mixed_truncation )
 [ "${video_flag}" = "1" ] && extra_py+=( --save_video )
 
-repo="$(cd "$(dirname "$0")/.." && pwd)"
 py=${PYTHON:-}
 if [ -z "${py}" ] && [ -x "${repo}/.venv/bin/python" ]; then py="${repo}/.venv/bin/python"; fi
 py=${py:-python}

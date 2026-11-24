@@ -14,9 +14,11 @@ task_name=${2}
 config_name=${alg_name}
 addition_info=${3}
 seed=${4}
+repo="$(cd "$(dirname "$0")/.." && pwd)"
 exp_name=${task_name}-${alg_name}-${addition_info}
-# runs on the data disk (/hy-tmp) to avoid filling up the system disk
-run_dir="/hy-tmp/data/outputs/${exp_name}_seed${seed}"
+# run dir stays inside the repository: <repo>/outputs/<task>-<alg>-<info>_seed<seed>
+# (RUN_DIR= overrides it, e.g. to evaluate a run that still lives elsewhere)
+run_dir="${RUN_DIR:-${repo}/outputs/${exp_name}_seed${seed}}"
 
 
 # gpu_id=$(bash scripts/find_gpu.sh)
@@ -36,7 +38,7 @@ if [ $DEBUG = True ]; then
     echo -e "\033[33mDebug mode!\033[0m"
 fi
 
-cd 3D-Diffusion-Policy
+cd "${repo}/3D-Diffusion-Policy"
 
 # optional dataset zarr override, appended only when provided
 if [ -n "$zarr_path" ]; then
