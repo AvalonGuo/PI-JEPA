@@ -140,7 +140,7 @@ released tasks are `adroit_door`, `adroit_hammer`, `adroit_pen`, `metaworld_asse
 `.venv` (3.8):
 
 ```bash
-TASK=adroit_door
+TASK=adroit_hammer
 REMOTE="${TASK}-pijepa-pjv5_seed0/checkpoints/best.ckpt"
 uvx --python 3.11 --from modelscope-hub ms-hub download a1339296390/PI-JEPA "$REMOTE" \
     --repo-type model --local-dir "$REPO/outputs" --continue-on-error
@@ -151,7 +151,7 @@ uvx --python 3.11 --from modelscope-hub ms-hub download a1339296390/PI-JEPA "$RE
 use. Evaluate it directly (only `best.ckpt` is published, so keep the default checkpoint):
 
 ```bash
-bash scripts/eval_pijepa.sh adroit_door pjv5 0 0
+bash scripts/eval_pijepa.sh adroit_hammer pjv5 0 0 false 50 false 15
 ```
 
 Re-running the download resumes an interrupted file; the `run.json missing` warning from
@@ -175,6 +175,4 @@ Re-running the download resumes an interrupted file; the `run.json missing` warn
 
 - [INSTALL.md](INSTALL.md) -- legacy conda recipe from upstream DP3
 - [ERROR_CATCH.md](ERROR_CATCH.md) -- in-depth installation / runtime errors
-- [Adroit_Eval.md](Adroit_Eval.md) / [Metaworld_Eval.md](Metaworld_Eval.md) -- per-task
-  train/eval commands and the 5-suite evaluation loops
 - `scripts/train_pijepa.sh`, `scripts/eval_pijepa.sh` -- authoritative argument / env lists
