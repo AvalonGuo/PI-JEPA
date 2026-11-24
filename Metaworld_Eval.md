@@ -18,7 +18,7 @@ bash scripts/train_policy.sh dp3 metaworld_${TASK} 0112 <seed> 0 1000 /hy-tmp/3D
 # suite: false, catgen, posgen, dynsphere, dynhand
 TASK=disassemble
 for SUITE in false catgen posgen dynsphere dynhand; do
-    CKPT=best bash scripts/eval_policy.sh dp3 metaworld_${TASK} 0112 0 0 false 50 "$SUITE" 15
+    bash scripts/eval_policy.sh dp3 metaworld_${TASK} 0112 0 0 false 50 "$SUITE" 15
 done
 ```
 

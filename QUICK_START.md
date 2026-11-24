@@ -104,7 +104,7 @@ uv pip install zarr==2.12.0 wandb ipdb gpustat dm_control omegaconf \
 # Adroit (task: hammer | door | pen)
 bash scripts/gen_demonstration_adroit.sh hammer
 
-# MetaWorld (task: assembly | disassemble | stick-push | ...)
+# MetaWorld (task: assembly | disassemble | stick-push )
 bash scripts/gen_demonstration_metaworld.sh assembly
 ```
 
@@ -112,34 +112,24 @@ Arguments: `<task> [save_video=0] [num_episodes=10] [seed=42] [gpu=0] [output_di
 [pc_resolution] [num_points]`; `output_dir` (6th) defaults to `3D-Diffusion-Policy/data`.
 For Adroit, `pc_resolution` must stay 84 (the depth map feeds the 84x84 back-projection).
 
-Optional point-cloud visualizer:
-
-```bash
-uv pip install kaleido plotly
-cd "$REPO/visualizer" && uv pip install -e .
-```
 
 ## 11. Quick run -- DP3 baseline
 
 ```bash
 bash scripts/train_policy.sh dp3 adroit_hammer 0112 0 0 1000
-bash scripts/eval_policy.sh dp3 adroit_hammer 0112 0 0
+bash scripts/eval_policy.sh dp3 adroit_hammer 0112 0 0 false 50
 ```
-
-`train_policy.sh` arguments: `<alg> <task> <tag> <seed> <gpu> [epochs=3000] [zarr_path]`.
-It calls a bare `python`, so keep the `.venv` activated. Weights:
-`outputs/<task>-<alg>-<tag>_seed<seed>/checkpoints/`.
 
 ## 12. Quick run -- PI-JEPA (main method)
 
 ```bash
 # train: <task> <addition_info> <seed> <gpu> [epochs=1000] [zarr_path]
-bash scripts/train_pijepa.sh metaworld_stick-push pjv5 0 0 1000
+bash scripts/train_pijepa.sh metaworld_stick-push pjpa 0 0 1000
 
-# evaluate: latest | best | epoch=NNNN-*.ckpt | /abs/path.ckpt
-CKPT=best bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0
+# evaluate: best.ckpt by default (CKPT=latest | epoch=NNNN-*.ckpt | /abs/path.ckpt)
+bash scripts/eval_pijepa.sh metaworld_stick-push pjpa 0 0
 # out-of-distribution clutter suites: false | catgen | posgen | dynsphere | dynhand
-CKPT=best bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0 false 50 catgen 0
+bash scripts/eval_pijepa.sh metaworld_stick-push pjpa 0 0 false 50 catgen 0
 ```
 
 `eval_pijepa.sh` arguments: `<task> <addition_info> <seed> <gpu> [save_video=false]

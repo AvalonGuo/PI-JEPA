@@ -17,7 +17,9 @@ run_dir=${RUN_DIR:-"${repo_root}/outputs/${exp_name}_seed${seed}"}
 # fail fast when the run dir has no checkpoint: eval.py would otherwise evaluate a
 # randomly initialised policy ("AttributeError: 'ParameterDict' object has no
 # attribute 'point_cloud'" at the first predict_action).
-_ckpt_sel=${CKPT:-latest}
+# default checkpoint is best.ckpt (the in-loop eval winner); CKPT=latest switches to the
+# last epoch and CKPT=<name>|/abs/path.ckpt selects anything else.
+_ckpt_sel=${CKPT:-best}
 case "${_ckpt_sel}" in
     latest) _ckpt="${run_dir}/checkpoints/latest.ckpt" ;;
     best)   _ckpt="${run_dir}/checkpoints/best.ckpt" ;;
@@ -34,6 +36,7 @@ fi
 if [ ! -f "${_ckpt}" ]; then
     echo "[eval_policy] no checkpoint: ${_ckpt}"
     echo "[eval_policy] run_dir=${run_dir}  (RUN_DIR override or <task>-<alg>-<info>_seed<seed>)"
+    echo "[eval_policy] hint: the default is best.ckpt; use CKPT=latest if this run has none"
     echo "[eval_policy] hint: pass the dir that really holds checkpoints/${_ckpt_sel}.ckpt,"
     echo "[eval_policy]       e.g. RUN_DIR=${repo_root}/outputs/<task>-<alg>-<info>_seed<seed>"
     if [ "${DRY_RUN:-0}" != "1" ]; then

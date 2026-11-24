@@ -200,7 +200,7 @@ echo "[pijepa] pool=${pool_type} T=${pool_temp} h=${pool_hidden} | pollution: vo
 echo "[pijepa] zarr=${zarr_path}"
 echo "[pijepa] out(write)=${run_dir}"
 echo "[pijepa] in-loop eval: every=${rollout_every} epoch(s) (0=off) | best ckpt: SAVE_BEST=${save_best} monitor=${best_monitor:-cfg(test_mean_score)} k=${best_k:-cfg(1)} mode=${best_mode:-cfg(max)} -> checkpoints/${best_name} | eval_episodes=${eval_episodes:-cfg}"
-echo "[pijepa] eval hint: bash scripts/eval_pijepa.sh ${task_name} ${addition_info} ${seed} ${gpu}   (CKPT=best for checkpoints/best.ckpt)"
+echo "[pijepa] eval hint: bash scripts/eval_pijepa.sh ${task_name} ${addition_info} ${seed} ${gpu}   (evaluates checkpoints/best.ckpt; CKPT=latest for the last epoch)"
 echo "[pijepa]        generic: RUN_DIR=${run_dir} PIJEPA=1 PIJEPA_V5=1 FUTURE_STEPS=${future_steps} TDT_LAYERS=${tdt_layers} TDT_HEADS=${tdt_heads} TDT_FF=${tdt_ff} bash scripts/eval_policy.sh dp3 ${task_name} ${addition_info} ${seed} ${gpu}"
 if [ "${DRY_RUN:-0}" = "1" ]; then
     echo "+ ${cmd[*]}"

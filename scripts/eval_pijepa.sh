@@ -9,14 +9,14 @@
 #   <addition_info> run dir tag <task>-pijepa-<addition_info>_seed<seed>
 #   <suite>         false | catgen | posgen | dynsphere | dynhand
 #   <extra_steps>   0 = never truncate (Metaworld_Eval.md) | 15 = trainer's rollout
-#   [ckpt]          latest | best | epoch=NNNN-*.ckpt | /abs/path.ckpt
-# env: CKPT= (wins over [ckpt]) | OUT_ROOT= | PYTHON= | DRY_RUN=1 | TEE=1 | SUMMARY=1 |
+#   [ckpt]          best (default) | latest | epoch=NNNN-*.ckpt | /abs/path.ckpt
+# env: CKPT= ([ckpt] wins over it) | OUT_ROOT= | PYTHON= | DRY_RUN=1 | TEE=1 | SUMMARY=1 |
 #      LOG= | NUM_POINTS= | ZARR= | BN_HIDDEN= | FUTURE_STEPS= | TDT_* | POOL_* (ckpt wins) |
 #      V5_TARGET=<dotted class, default pijepa_policy.PIJEPAPolicyV5>
 #      subclass; PYTHONPATH must make it importable> |
 #      METRICS_DIR=<media dir>|none | METRIC_TAG=pijepa_v5
-# e.g. bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0
-#      CKPT=best bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0 false 50 catgen 0
+# e.g. bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0        # best.ckpt
+#      CKPT=latest bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0 false 50 catgen 0
 set -euo pipefail
 
 task_name=${1:-}
@@ -28,7 +28,7 @@ episodes=${6:-50}
 suite=${7:-false}
 extra_steps=${8:-0}
 run_tag=${9:-}
-ckpt_sel=${10:-${CKPT:-latest}}
+ckpt_sel=${10:-${CKPT:-best}}
 
 v5_target=${V5_TARGET:-pijepa_policy.PIJEPAPolicyV5}
 
@@ -36,9 +36,9 @@ usage() {
     cat <<'EOF'
   usage: bash scripts/eval_pijepa.sh <task> <addition_info> <seed> <gpu> \
               [save_video=false] [episodes=50] [suite=false] [extra_steps=0] [run_tag] [ckpt]
-  e.g.   bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0
-         CKPT=best bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0
-  ENV: CKPT=latest|best|epoch=NNNN-*.ckpt|/abs/path | DRY_RUN=1 | OUT_ROOT= | TEE=0 | SUMMARY=0 | LOG= | NUM_POINTS= | ZARR=
+  e.g.   bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0        # best.ckpt
+         CKPT=latest bash scripts/eval_pijepa.sh metaworld_stick-push pjv5 0 0
+  ENV: CKPT=best(default)|latest|epoch=NNNN-*.ckpt|/abs/path | DRY_RUN=1 | OUT_ROOT= | TEE=0 | SUMMARY=0 | LOG= | NUM_POINTS= | ZARR=
 EOF
 }
 
@@ -120,7 +120,8 @@ if [ -f "${ckpt_path}" ]; then
     ckpt_tag=$(basename "${ckpt_real:-${ckpt_path}}" .ckpt | tr '=' '-')
 else
     echo "[eval5] checkpoint not found: ${ckpt_path}"
-    echo "[eval5] hint: ls ${ckpt_dir}   (a run trained with SAVE_BEST=0 has no best.ckpt)"
+    echo "[eval5] hint: best.ckpt is the default; a run trained with SAVE_BEST=0 or"
+    echo "[eval5]       ROLLOUT_EVERY=0 has none -> retry with CKPT=latest   (ls ${ckpt_dir})"
     [ "${DRY_RUN:-0}" = "1" ] || exit 1
 fi
 
