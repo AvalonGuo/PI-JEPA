@@ -3,7 +3,7 @@
 **Breaking the Distractor Hijack: Perturbation-Invariant JEPA for Robust 3D Manipulation**
 
 <p align="center">
-  <a href="https://www.alphaxiv.org/abs/2611.pi-jepa-robust-3d-manipulation"><img src="tools/assets/paper.svg" alt="Paper: alphaXiv"></a>
+  <a href="https://www.alphaxiv.org/abs/2611.pi-jepa-robust-3d-manipulation"><img src="tools/assets/paper.svg" alt="alphaXiv"></a>
   <a href="https://www.modelscope.cn/models/a1339296390/PI-JEPA"><img src="tools/assets/modelscope.svg" alt="🤖 Model: ModelScope"></a>
   <a href="QUICK_START.md"><img src="tools/assets/quickstart.svg" alt="Quick Start: Guide"></a>
   <a href="LICENSE"><img src="tools/assets/license.svg" alt="License: MIT"></a>
