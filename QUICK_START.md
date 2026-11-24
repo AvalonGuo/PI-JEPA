@@ -123,49 +123,41 @@ bash scripts/eval_policy.sh dp3 adroit_hammer 0112 0 0 false 50
 ## 12. Quick run -- PI-JEPA (main method)
 
 ```bash
-# train: <task> <addition_info> <seed> <gpu> [epochs=1000] [zarr_path]
-bash scripts/train_pijepa.sh metaworld_stick-push pjpa 0 0 1000
-
-# evaluate: best.ckpt by default (CKPT=latest | epoch=NNNN-*.ckpt | /abs/path.ckpt)
-bash scripts/eval_pijepa.sh metaworld_stick-push pjpa 0 0
+bash scripts/train_pijepa.sh adroit_hammer pjv5 0 0 1000
+bash scripts/eval_pijepa.sh adroit_hammer pjv5 0 0
 # out-of-distribution clutter suites: false | catgen | posgen | dynsphere | dynhand
-bash scripts/eval_pijepa.sh metaworld_stick-push pjpa 0 0 false 50 catgen 0
+bash scripts/eval_pijepa.sh adroit_hammer pjv5 0 0 false 50 catgen 0
 ```
 
-`eval_pijepa.sh` arguments: `<task> <addition_info> <seed> <gpu> [save_video=false]
-[episodes=50] [suite=false] [extra_steps=0] [run_tag] [ckpt]`.
+## 13. Download a pretrained checkpoint
 
-Run dir: `outputs/<task>-pijepa-<addition_info>_seed<seed>` with `checkpoints/latest.ckpt`,
-`checkpoints/best.ckpt` + `best.json`, `pijepa_v5_metrics.jsonl` and `run.json`.
+The trained PI-JEPA checkpoints are published on ModelScope as `a1339296390/PI-JEPA`.
+Each run is one file, `<task>-pijepa-pjv5_seed0/checkpoints/best.ckpt` (~1.9 GB); the
+released tasks are `adroit_door`, `adroit_hammer`, `adroit_pen`, `metaworld_assembly`,
+`metaworld_disassemble` and `metaworld_stick-push`.
 
-Frequently used environment variables (full list in the header of `scripts/train_pijepa.sh`):
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `FUTURE_STEPS` | `8` | future frames predicted by the TDT (`0` = `cfg.n_action_steps`) |
-| `GAMMA` | `0.5` | discount on the future-frame target |
-| `TDT_LAYERS` / `TDT_HEADS` / `TDT_FF` | `2` / `4` / `1024` | temporal dynamics predictor |
-| `BN_HIDDEN` | `128,64,128` | refiner (bottleneck) widths, `320 -> ... -> 256` |
-| `POOL_TYPE` | `softmax` | `softmax` / `mean` / `max` pooling |
-| `L2_CLEAN_WEIGHT` / `L2_POLL_WEIGHT` | `1.0` / `0.3` | two-view diffusion losses |
-| `LAMBDA_JEPA_CLEAN` / `LAMBDA_JEPA_POLL` | `1` / `1` | JEPA SmoothL1 weights (`0` disables a term) |
-| `ROLLOUT_EVERY` | `200` | in-loop rollout period (`0` = off) |
-| `BATCH` / `WORKERS` | `128` / `8` | dataloader |
-| `OUT_ROOT` | `outputs/` | run-dir root |
-| `ZARR` | `3D-Diffusion-Policy/data/<task>_expert.zarr` | dataset override |
-| `DRY_RUN=1` | off | print the resolved command without running |
-
-CPU-only wiring check (no simulator, no training):
+`modelscope-hub` requires Python >= 3.10, so call it through `uvx` instead of the project
+`.venv` (3.8):
 
 ```bash
-python test/verify_pijepa_pipeline.py
+TASK=adroit_door
+REMOTE="${TASK}-pijepa-pjv5_seed0/checkpoints/best.ckpt"
+uvx --python 3.11 --from modelscope-hub ms-hub download a1339296390/PI-JEPA "$REMOTE" \
+    --repo-type model --local-dir "$REPO/outputs" --continue-on-error
 ```
 
-Note: both views share the same UNet, and the TDT is train-only -- deployment is the refiner
-branch (`mlp -> bottleneck -> pool -> final_proj | state -> UNet`), which is why
-`eval_pijepa.sh` needs no TDT arguments.
+`--local-dir` keeps the remote layout, so the result is
+`outputs/<task>-pijepa-pjv5_seed0/checkpoints/best.ckpt` -- the exact run dir the launchers
+use. Evaluate it directly (only `best.ckpt` is published, so keep the default checkpoint):
 
-## 13. Troubleshooting
+```bash
+bash scripts/eval_pijepa.sh adroit_door pjv5 0 0
+```
+
+Re-running the download resumes an interrupted file; the `run.json missing` warning from
+`eval_pijepa.sh` is expected for a downloaded run dir.
+
+## 14. Troubleshooting
 
 - OpenGL errors -> `unset LD_PRELOAD`
 - `distutils has no attribute 'version'` -> `uv pip install setuptools==59.5.0`
@@ -179,7 +171,7 @@ branch (`mlp -> bottleneck -> pool -> final_proj | state -> UNet`), which is why
 - `ninja` missing while building a CUDA extension -> install it (`uv pip install ninja` /
   `sudo apt-get install ninja-build`)
 
-## 14. See also
+## 15. See also
 
 - [INSTALL.md](INSTALL.md) -- legacy conda recipe from upstream DP3
 - [ERROR_CATCH.md](ERROR_CATCH.md) -- in-depth installation / runtime errors
